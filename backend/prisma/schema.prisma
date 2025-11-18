@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+enum UserRoles {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum UserLanguage {
+  RU
+  EN
+}
+
+model User {
+  id         String    @id @default(uuid())
+  telegramId String    @unique
+  username   String?
+  lastName   String?
+  firstName  String?
+  role       UserRoles @default(USER)
+
+  banned Boolean @default(false)
+
+  usersConfigId String?
+  UsersConfig   UsersConfig?
+
+  dealsInfoId String?
+  DealsInfo   DealsInfo?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AccsessUsers{
+   id String @id @default(uuid())
+
+   usersnames Json? @default("[]")
+}
+
+model DealsInfo {
+  id     String @id @default(uuid())
+  userId String @unique
+
+  addresses Json? @default("[]")
+
+  KeyboardUrls Json? @default("[]")
+
+  User User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UsersConfig {
+  id     String @id @default(uuid())
+  userId String @unique
+
+  language UserLanguage @default(RU)
+
+  User User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
