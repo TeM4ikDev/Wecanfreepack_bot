@@ -1,0 +1,7 @@
+
+
+
+export enum SCENES {
+  FILL_INFO = 'FILLINFO',
+  USER_INFO_FORM = 'USERINFOFORM',
+}

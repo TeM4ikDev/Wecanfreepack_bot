@@ -1,0 +1,75 @@
+import { AdminModule } from '@/admin/admin.module';
+import { DatabaseModule } from '@/database/database.module';
+import { UsersModule } from '@/users/users.module';
+import { UsersService } from '@/users/users.service';
+import { Module, forwardRef } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { TelegrafModule } from 'nestjs-telegraf';
+import { session } from 'telegraf';
+import { FillInfo } from './scenes/fill_info';
+import { LocalizationService } from './services/localization.service';
+import { TelegramService } from './telegram.service';
+import { TelegramUpdate } from './telegram.update';
+import { ChatCommandsUpdate } from './updates/chatCommands.update';
+import { InlineQueryUpdate } from './updates/InlineQuery.update';
+import { LanguageUpdate } from './updates/language.update';
+import { MainMenuUpdate } from './updates/main-menu.update';
+
+@Module({
+
+  imports: [
+    ConfigModule,
+    DatabaseModule,
+    JwtModule,
+    forwardRef(() => AdminModule),
+    forwardRef(() => UsersModule),
+    TelegrafModule.forRootAsync({
+      imports: [ConfigModule, forwardRef(() => UsersModule)],
+      useFactory: (configService: ConfigService, usersService: UsersService) => {
+  
+        return {
+          token: configService.get<string>('BOT_TOKEN'),
+          middlewares: [session()],
+          // telegram: {
+          //   agent: agent,
+          // },
+          launchOptions: {
+            allowedUpdates: [
+              'message',
+              'chat_member',
+              'my_chat_member',
+              'chat_join_request',
+              'callback_query',
+              'inline_query',
+              'business_message' as any,
+              'edited_business_message',
+              'deleted_business_message',
+              'sender_business_bot',
+              'business_connection'
+
+            ],
+            dropPendingUpdates: true,
+          },
+        };
+      },
+      inject: [ConfigService, UsersService ],
+    }),
+
+  ],
+  providers: [
+    LanguageUpdate,
+    MainMenuUpdate,
+    LocalizationService,
+    FillInfo,
+
+    ChatCommandsUpdate,
+    TelegramService,
+    TelegramUpdate,
+    InlineQueryUpdate,
+
+
+  ],
+  exports: [TelegramService, LocalizationService]
+})
+export class TelegramModule { }
